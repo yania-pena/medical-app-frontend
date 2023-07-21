@@ -27,7 +27,11 @@ export const FormLogin = () => {
                 setTimeout(function () {
                 }, 5000);
             } else {
-                message.error(resp.msg);
+                if (resp.msg.includes("existe")) {
+                    message.error("El usuario no existe, por favor regístrate.");
+                } else {
+                    message.error(resp.msg);
+                }
             }
             setLoading(false);
         } catch (error) {
@@ -48,9 +52,9 @@ export const FormLogin = () => {
                     label="Email"
                     name="email"
                     rules={[
-                        { required: true, message: 'Por favor ingrese su correo!' }, 
+                        { required: true, message: 'Por favor ingrese su correo!' },
                         { type: 'email', message: 'Ingrese un email valido!' },
-                        { pattern: emailRgx, message: "El email es incorecto"  }
+                        { pattern: emailRgx, message: "El email es incorecto" }
                     ]}
                 >
                     <Input />

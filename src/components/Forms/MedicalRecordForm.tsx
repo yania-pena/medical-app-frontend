@@ -350,6 +350,55 @@ const MedicalRecordForm = ({
 
   const imcValue = Form.useWatch('imc', form);
 
+  console.log('imcValue', imcValue)
+
+  const getImcMessage = () => {
+    let dinamicText = ""
+    let baseText = "El IMC indica "
+    const parsedValue = parseFloat(imcValue)
+    if (parsedValue < 15) {
+      dinamicText = "Delgadez muy severa"
+      return baseText + dinamicText;
+    }
+    if (parsedValue >= 15 && parsedValue <= 15.9) {
+      dinamicText = "Delgadez severa"
+      return baseText + dinamicText;
+    }
+
+    if (parsedValue > 16 && parsedValue <= 18.4) {
+      dinamicText = "Delgadez"
+      return baseText + dinamicText;
+    }
+
+
+    if (parsedValue > 18.5 && parsedValue <= 24.9) {
+      dinamicText = "Peso saludable"
+      return baseText + dinamicText;
+
+    }
+
+    if (parsedValue > 25 && parsedValue <= 29.9) {
+      dinamicText = "Sobrepeso"
+      return baseText + dinamicText;
+
+    }
+
+    if (parsedValue > 30 && parsedValue <= 34.9) {
+      dinamicText = "Obesidad moderada"
+      return baseText + dinamicText;
+    }
+
+    if (parsedValue > 35 && parsedValue <= 39.9) {
+      dinamicText = "Obesidad severa"
+      return baseText + dinamicText;
+    }
+
+    if (parsedValue > 40) {
+      dinamicText = "Obesidad mórbida"
+      return baseText + dinamicText;
+    }
+  }
+
 
   return (
     <>
@@ -561,12 +610,15 @@ const MedicalRecordForm = ({
                     >
                       <Input disabled />
                     </Form.Item>
-                    {parseFloat(imcValue) > 25 && (
+                    {typeof (imcValue) !== "undefined" && (
                       <>
-                        <Alert style={{ marginTop: -12, marginBottom: 4 }} type="error" message="IMC riesgoso, el paciente debe agendar una cita pronto" />
-                        <SendAlertButton email={date.patient.email} />
+                        <Alert style={{ marginTop: -12, marginBottom: 4 }} type="error" message={getImcMessage()} />
+                        {(parseFloat(imcValue) > 25 || parseFloat(imcValue) < 18.5) && (
+                          <SendAlertButton email={date.patient.email} />
+                        )}
                       </>
                     )}
+
                   </Col>
                 </Row>
 
@@ -664,16 +716,16 @@ const MedicalRecordForm = ({
                       </Space>
                     ))}
                     <Col span={24}>
-                    <Form.Item>
-                      <Button
-                        type="dashed"
-                        onClick={() => add()}
-                        block
-                        icon={<PlusOutlined />}
-                      >
-                        Agregar medicamento
-                      </Button>
-                    </Form.Item>
+                      <Form.Item>
+                        <Button
+                          type="dashed"
+                          onClick={() => add()}
+                          block
+                          icon={<PlusOutlined />}
+                        >
+                          Agregar medicamento
+                        </Button>
+                      </Form.Item>
                     </Col>
                   </>
                 )}

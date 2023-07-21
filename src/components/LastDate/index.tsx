@@ -8,12 +8,18 @@ import { ClockCircleOutlined, CloudDownloadOutlined, DownloadOutlined, EyeFilled
 import ModalHeader from '../ModalHeader';
 import { DownloadDoneOutlined, VideocamOutlined } from '@mui/icons-material';
 
-const MedicalInfo = ({ date, firstname, lastname, onlyHour }: any) => {
+const MedicalInfo = ({ date, firstname, lastname, onlyHour, hideDatetime }: any) => {
 
     return (
         <Card
             title="Información médica"
-            extra={<><ClockCircleOutlined /> {" "} {onlyHour ? 'Hora:' : 'Fecha y Hora:'} {format(new Date(date.start), onlyHour ? 'h:mm a' : 'd MMMM, yyyy h:mm a', { locale: es })}</>}>
+            extra={<>
+                {!hideDatetime && (
+                    <>
+                        <ClockCircleOutlined /> {" "} {onlyHour ? 'Hora:' : 'Fecha y Hora:'} {format(new Date(date.start), onlyHour ? 'h:mm a' : 'd MMMM, yyyy h:mm a', { locale: es })}
+                    </>
+                )}
+            </>}>
             <div style={{ display: 'block', padding: 16 }}>
                 <span style={{ display: "block" }}>
                     Talla: {date.record.medicalInfo.height}m
@@ -111,11 +117,17 @@ const MedicalInfo = ({ date, firstname, lastname, onlyHour }: any) => {
 }
 
 
-const NutriInfo = ({ date, firstname, lastname, onlyHour }: any) => {
+const NutriInfo = ({ date, firstname, lastname, onlyHour, hideDatetime }: any) => {
     const [openDietModal, setOpenDietModal] = useState(false)
     return (
         <Card title="Información nutricional"
-            extra={<><ClockCircleOutlined /> {" "} {onlyHour ? 'Hora:' : 'Fecha y Hora:'} {format(new Date(date.start), onlyHour ? 'h:mm a' : 'd MMMM, yyyy h:mm a', { locale: es })}</>}>
+            extra={<>
+                {!hideDatetime && (
+                    <>
+                        <ClockCircleOutlined /> {" "} {onlyHour ? 'Hora:' : 'Fecha y Hora:'} {format(new Date(date.start), onlyHour ? 'h:mm a' : 'd MMMM, yyyy h:mm a', { locale: es })}
+                    </>
+                )}
+            </>}>
             <div style={{ display: 'block', padding: 16 }}>
                 <span style={{ display: "block" }}>
                     Medida de cuello:{" "}
@@ -225,11 +237,17 @@ const NutriInfo = ({ date, firstname, lastname, onlyHour }: any) => {
 }
 
 
-const PsycoInfo = ({ date, onlyHour }: any) => {
+const PsycoInfo = ({ date, onlyHour, hideDatetime }: any) => {
     return (
         <Card title="Información psicólogica"
-            extra={<><ClockCircleOutlined /> {" "} {onlyHour ? 'Hora:' : 'Fecha y Hora:'} {format(new Date(date.start), onlyHour ? 'h:mm a' : 'd MMMM, yyyy h:mm a', { locale: es })}</>}
-        >
+            extra={<>
+                {!hideDatetime && (
+                    <>
+                        <ClockCircleOutlined /> {" "} {onlyHour ? 'Hora:' : 'Fecha y Hora:'} {format(new Date(date.start), onlyHour ? 'h:mm a' : 'd MMMM, yyyy h:mm a', { locale: es })}
+                    </>
+                )}
+            </>}>
+
             <div style={{ display: 'block', padding: 16 }}>
 
                 <>
@@ -261,19 +279,25 @@ const PsycoInfo = ({ date, onlyHour }: any) => {
 }
 
 
-const EmptyDate = ({ date, onlyHour }: any) => {
+const EmptyDate = ({ date, onlyHour, hideDatetime }: any) => {
     console.log('date', date)
     return (
         <Card title="Aún no existe información de esta cita"
-            extra={<><ClockCircleOutlined /> {" "} {onlyHour ? 'Hora:' : 'Fecha y Hora:'} {format(new Date(date.start), onlyHour ? 'h:mm a' : 'd MMMM, yyyy h:mm a', { locale: es })}</>}
-        >
+            extra={<>
+                {!hideDatetime && (
+                    <>
+                        <ClockCircleOutlined /> {" "} {onlyHour ? 'Hora:' : 'Fecha y Hora:'} {format(new Date(date.start), onlyHour ? 'h:mm a' : 'd MMMM, yyyy h:mm a', { locale: es })}
+                    </>
+                )}
+            </>}>
+
             <></>
         </Card>
     )
 }
 
 
-const IndividualDate = ({ date, patient, onlyHour }: any) => {
+const IndividualDate = ({ date, patient, onlyHour, hideDatetime }: any) => {
     console.log('date', date)
     const { firstname, lastname } = patient
 
@@ -284,24 +308,24 @@ const IndividualDate = ({ date, patient, onlyHour }: any) => {
                     <Row style={{ marginBottom: 12 }}>
                         {date.record !== null && "medicalInfo" in date.record && (
                             <Col span={24}>
-                                <MedicalInfo date={date} firstname={firstname} lastname={lastname} onlyHour={onlyHour} />
+                                <MedicalInfo date={date} firstname={firstname} lastname={lastname} onlyHour={onlyHour} hideDatetime={hideDatetime} />
                             </Col>
                         )}
                         {date.record !== null && "nutriInfo" in date.record &&
                             "backMeasurement" in date.record.nutriInfo && (
                                 <Col span={24}>
-                                    <NutriInfo date={date} firstname={firstname} lastname={lastname} onlyHour={onlyHour} />
+                                    <NutriInfo date={date} firstname={firstname} lastname={lastname} onlyHour={onlyHour} hideDatetime={hideDatetime} />
                                 </Col>
                             )}
                         {date.record !== null && "psychologistInfo" in date.record &&
                             "comments" in date.record.psychologistInfo && (
                                 <Col span={24}>
-                                    <PsycoInfo date={date} onlyHour={onlyHour} />
+                                    <PsycoInfo date={date} onlyHour={onlyHour} hideDatetime={hideDatetime} />
                                 </Col>
                             )}
                     </Row>
                 ) : (
-                    <EmptyDate date={date} onlyHour={onlyHour} />
+                    <EmptyDate date={date} onlyHour={onlyHour} hideDatetime={hideDatetime} />
                 )}
 
             </>
@@ -311,14 +335,14 @@ const IndividualDate = ({ date, patient, onlyHour }: any) => {
 }
 
 
-const LastDate = ({ date, patient, onlyHour = false }: any) => {
+const LastDate = ({ date, patient, onlyHour = false, hideDatetime = false }: any) => {
     console.log('date', date)
     console.log('length', date.length)
     return (
         <div style={{ width: '100%' }}>
-            {date.length === 1 && <IndividualDate date={date[0]} patient={patient} onlyHour={onlyHour} />}
+            {date.length === 1 && <IndividualDate date={date[0]} patient={patient} onlyHour={onlyHour} hideDatetime={hideDatetime} />}
             {date.length > 1 && date.map((dateItem: any) =>
-                <IndividualDate date={dateItem} patient={patient} onlyHour={onlyHour} />)}
+                <IndividualDate date={dateItem} patient={patient} onlyHour={onlyHour} hideDatetime={hideDatetime} />)}
         </div>
     )
 }

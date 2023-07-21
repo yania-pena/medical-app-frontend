@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { Button, Drawer, Layout, Modal, Space } from "antd";
+import { Button, Drawer, Layout, Modal, Space, Tooltip } from "antd";
 import { Navbar } from "../../components/Navbar";
 import { SideBar } from "../../components/Sidebar";
 import { useContext, useEffect, useState } from "react";
@@ -20,12 +20,17 @@ import AgoraUIKit, { layout } from "agora-react-uikit";
 import ScreenRecording from "../../pages/Integrations/ScreenRecord";
 import './styles.css'
 import { isMobile } from "react-device-detect";
+import AgoraComponent from "../../components/AgoraComponent";
+import { NewCallContext } from "../../context/NewCallContext";
+import { FullscreenOutlined } from "@ant-design/icons";
 
 
 const AuthenticatedNavigation = () => {
 
   const navigate = useNavigate();
   const { user }: any = useContext(AuthContext);
+
+  const { joinSuccess, openDrawer, showDrawer }: any = useContext(NewCallContext)
 
   const { call, isActive, leave }: any = useContext(CallContext)
 
@@ -105,6 +110,19 @@ const AuthenticatedNavigation = () => {
 
         </SideBar>
       </Layout>
+      {
+        joinSuccess &&
+        (
+          <div className="call-container">
+            <AgoraComponent />
+            {!openDrawer && (
+            <Tooltip title="Mostrar llamada">
+              <Button onClick={showDrawer} icon={<FullscreenOutlined />}>Mostrar llamada</Button> 
+              </Tooltip>
+            )}
+          </div>
+        )
+      }
       {
         isActive && call !== null && (
           <div className="call-container">

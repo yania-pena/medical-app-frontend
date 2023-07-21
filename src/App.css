@@ -50,3 +50,6 @@
 */
 
 
+.ant-drawer-content-wrapper {
+    height: 100% !important;
+}

@@ -3,6 +3,7 @@ import UnauthenticatedNavigation from "../navigation/UnauthenticatedNavigation";
 import { AuthContext } from "../context/AuthContext";
 import AuthenticatedNavigation from "../navigation/AuthenticatedNavigation";
 import { CallProvider } from "../context/CallContext";
+import { NewCallProvider } from "../context/NewCallContext";
 
 const MedicalApp = (): any => {
   const { isLogin, login, logout } = useContext(AuthContext);
@@ -21,7 +22,9 @@ const MedicalApp = (): any => {
   if (!isLogin) return <UnauthenticatedNavigation />;
   if (isLogin) return (
     <CallProvider>
-      <AuthenticatedNavigation />
+      <NewCallProvider>
+        <AuthenticatedNavigation />
+      </NewCallProvider>
     </CallProvider>
   )
 };

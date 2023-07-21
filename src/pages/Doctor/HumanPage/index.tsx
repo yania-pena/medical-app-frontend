@@ -72,12 +72,12 @@ export default function HumanPage() {
     setSubmitting(true)
     if (originalUrl !== "") {
       const data = {
-        "medida_cuello": values.cuello,
-        "medida_brazos": values.brazos,
-        "medida_pecho": values.pecho,
-        "medida_cintura": values.cintura,
-        "medida_cadera": values.cadera,
-        "medida_piernas": values.piernas,
+        "medida_cuello": values.cuello || 30,
+        "medida_brazos": values.brazos || 30,
+        "medida_pecho": values.pecho || 30,
+        "medida_cintura": values.cintura || 30,
+        "medida_cadera": values.cadera || 30,
+        "medida_piernas": values.piernas || 30,
         "image_url": originalUrl
       }
       const request = await transformShape('images/shape/transform', data)
@@ -170,7 +170,7 @@ export default function HumanPage() {
                   name="cuello"
                 // rules={[{ required: true, message: "Torso Requerido" }]}
                 >
-                  <InputNumber min={60} max={130} defaultValue={30} />
+                  <InputNumber min={30} max={200} defaultValue={30} />
                 </Form.Item>
               </Col>
               <Col span={11} offset={1}>
@@ -179,7 +179,7 @@ export default function HumanPage() {
                   name="brazos"
                 // rules={[{ required: true, message: "Torso Requerido" }]}
                 >
-                  <InputNumber min={60} max={130} defaultValue={30} />
+                  <InputNumber min={30} max={200} defaultValue={30} />
                 </Form.Item>
               </Col>
               <Col span={11}>
@@ -188,7 +188,7 @@ export default function HumanPage() {
                   name="pecho"
                 // rules={[{ required: true, message: "Torso Requerido" }]}
                 >
-                  <InputNumber min={60} max={130} defaultValue={30} />
+                  <InputNumber min={30} max={200} defaultValue={30} />
                 </Form.Item>
               </Col>
               <Col span={11} offset={1}>
@@ -197,7 +197,7 @@ export default function HumanPage() {
                   name="cintura"
                 // rules={[{ required: true, message: "Torso Requerido" }]}
                 >
-                  <InputNumber min={60} max={130} defaultValue={30} />
+                  <InputNumber min={30} max={200} defaultValue={30} />
                 </Form.Item>
               </Col>
               <Col span={11}>
@@ -206,7 +206,7 @@ export default function HumanPage() {
                   name="cadera"
                 // rules={[{ required: true, message: "Torso Requerido" }]}
                 >
-                  <InputNumber min={60} max={130} defaultValue={30} />
+                  <InputNumber min={30} max={200} defaultValue={30} />
                 </Form.Item>
               </Col>
               <Col span={11} offset={1}>
@@ -215,15 +215,15 @@ export default function HumanPage() {
                   name="piernas"
                 // rules={[{ required: true, message: "Piernas Requeridas" }]}
                 >
-                  <InputNumber min={60} max={130} defaultValue={5} />
+                  <InputNumber min={30} max={200} defaultValue={5} />
                 </Form.Item>
               </Col>
             </Row>
-            <Form.Item wrapperCol={{ offset: 8, span: 16 }} extra={<div>Para obtener los mejores resultados ingresa valores cercanos entre sí</div>} >
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'end' }}>
               <Button type="primary" htmlType="submit" loading={submitting}>
                 Procesar
               </Button>
-            </Form.Item>
+            </div>
           </Form>
           <div>
             {(originalUrl !== "" && results.length === 0) && <img src={originalUrl} alt="" />}

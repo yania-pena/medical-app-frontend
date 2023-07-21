@@ -2,7 +2,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../../context/AuthContext";
 import { getData } from "../../../services/common/getData";
-import { Card, List, Modal, Form, Select, Row, Col, Spin, Button, MenuProps, Dropdown, Space } from "antd";
+import { Card, List, Modal, Form, Select, Row, Col, Spin, Button, MenuProps, Dropdown, Space, DatePicker, DatePickerProps, message } from "antd";
 import DateItem from "../../../components/DateItem";
 import MedicalRecordForm from "../../../components/Forms/MedicalRecordForm";
 import moment from "moment";
@@ -16,6 +16,13 @@ import { CallContext } from "../../../context/CallContext";
 import './styles.css';
 import ModalHeader from "../../../components/ModalHeader";
 import { isMobile } from "react-device-detect";
+import { RangePickerProps } from "antd/es/date-picker";
+import { es } from "date-fns/locale";
+import { format } from "date-fns";
+import dayjs from "dayjs";
+import { NewCallContext } from "../../../context/NewCallContext";
+import AgoraRTC from 'agora-rtc-sdk-ng';
+import { postData } from "../../../services/common/postData";
 
 const gridStyle: React.CSSProperties = {
   width: "100%",
@@ -24,6 +31,81 @@ const gridStyle: React.CSSProperties = {
 
 
 const MyDrop = ({ date, handleOpenModal, join }: any) => {
+  const { joinHuman }: any = useContext(NewCallContext)
+
+  const generateAgoraToken = async (channelName: any, userId: any, role: any) => {
+    try {
+      const resp = await postData('api/agora', {
+        channelName,
+        userId,
+        role,
+      })
+      return resp.token;
+    } catch (error) {
+      console.error('Error al obtener el token:', error);
+      return null;
+    }
+  };
+
+  const fullJoin = async () => {
+    const humanClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+    const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+    const videoTrack = await AgoraRTC.createCameraVideoTrack();
+    joinHuman(humanClient, audioTrack, videoTrack)
+
+    try {
+      const token = await generateAgoraToken('test', 1, 'publisher'); // Reemplaza los valores según tus necesidades
+      console.log('token', token)
+      await humanClient.join('bca03b41035d4ca78a76ba456cc67ed9', 'test', token, null); // Unirte a la videollamada con el token generado
+
+
+      // Verificar el estado de la conexión antes de publicar las pistas
+      const connectionState = humanClient.connectionState;
+      if (connectionState === 'DISCONNECTED') {
+        console.error('Error al unirse a la llamada: La conexión no está establecida.');
+        return;
+      } else {
+        // Crear el div para mostrar la cámara local
+        let localPlayerContainer
+        if (document.getElementById('local_stream') === null) {
+          localPlayerContainer = document.createElement('div');
+          localPlayerContainer.id = 'local_stream';
+          console.log('vcontainer', document.getElementById('video_container'))
+
+          document.getElementById('video_container')?.appendChild(localPlayerContainer);
+
+        } else {
+          localPlayerContainer = document.getElementById('local_stream')
+
+        }
+
+        // Agregar la pista de video a la interfaz
+        videoTrack.play(`local_stream`);
+
+
+
+        // Asignar estilos al elemento "local_stream"
+        if (localPlayerContainer !== null) {
+
+          localPlayerContainer.style.width = '320px'; // Ancho en píxeles
+          localPlayerContainer.style.height = '240px'; // Alto en píxeles
+          localPlayerContainer.style.border = '2px solid #000'; // Borde de 2 píxeles de ancho en color negro
+        }
+
+      }
+
+
+      await humanClient.publish([audioTrack, videoTrack]);
+
+    } catch (error) {
+      console.error('Error al unirse a la llamada:', error);
+    }
+
+  }
+
+
+
+
   let items: MenuProps['items'] = [
     {
       key: '1',
@@ -32,16 +114,20 @@ const MyDrop = ({ date, handleOpenModal, join }: any) => {
           Actualizar datos
         </a>
       ),
-    },
-    {
-      key: '2',
-      label: (
-        <a rel="noopener noreferrer" onClick={join}>
-          Ingresar a videollamada
-        </a>
-      ),
     }
   ];
+
+
+  items.push({
+    key: '2',
+    label: (
+      <a rel="noopener noreferrer" onClick={fullJoin}>
+        Ingresar a videollamada
+      </a>
+
+    ),
+  })
+
 
   if ("callUrl" in date) {
     if (date.callUrl !== "") {
@@ -200,7 +286,7 @@ const DatesPage = () => {
 
         form.setFieldValue(
           "waistMeasurement",
-          date.record?.nutriInfo?.waistMeasurement 
+          date.record?.nutriInfo?.waistMeasurement
         );
         form.setFieldValue(
           "backMeasurement",
@@ -357,8 +443,15 @@ const DatesPage = () => {
           return b.start.localeCompare(a.start);
         };
         const sortedDates = fullDates.sort(comparareDates);
+
+        /*
         setInitialData(sortedDates);
         getTodayDates(sortedDates);
+        */
+        setDates(sortedDates)
+        setTotalItems(sortedDates.length)
+        getTodayDates(sortedDates)
+        // filterDates()     
       }
       setLoadingData(false);
     }
@@ -369,10 +462,11 @@ const DatesPage = () => {
   }, [refresh]);
 
   const getTodayDates = (data: any) => {
-    const filteredDates = data.filter((date: any) =>
+    const todayDates = data.filter((date: any) =>
       moment().isSame(date.start, "day")
     );
-    setDates(filteredDates);
+    setFilteredDates(todayDates);
+    setShowingToday(true)
   };
 
   const handleChangeFilter = (value: any) => {
@@ -391,8 +485,8 @@ const DatesPage = () => {
   const { join } = useContext(CallContext);
 
   const getModalTitle = () => {
-    if(selectedDate){
-      if("patient" in selectedDate){
+    if (selectedDate) {
+      if ("patient" in selectedDate) {
         const { firstname, lastname } = selectedDate.patient
         return "Ficha médica de: " + firstname + " " + lastname
       }
@@ -402,6 +496,80 @@ const DatesPage = () => {
   }
 
 
+  const [startDate, setStartDate] = useState<any>('')
+  const [endDate, setEndDate] = useState<any>('')
+
+  const [totalItems, setTotalItems] = useState(0)
+
+  const [filteredDates, setFilteredDates] = useState<any>([])
+
+  const [filtered, setFiltered] = useState(false)
+
+  const [showingToday, setShowingToday] = useState(false)
+
+
+  const onChange = (
+    value: DatePickerProps['value'] | RangePickerProps['value'],
+    dateString: [string, string] | string,
+  ) => {
+    console.log('Selected Time: ', value);
+    console.log('Formatted Selected Time: ', dateString);
+    if (dateString[0] === "" && dateString[1] === "") {
+      setFiltered(false)
+    }
+
+    setStartDate(dateString[0])
+    setEndDate(dateString[1])
+
+    filterDates(dateString[0], dateString[1])
+  };
+
+
+  const filterDates = (sd: any, ed: any) => {
+
+    const startDate = sd
+    const endDate = ed
+
+    if (startDate !== "" && endDate === "") {
+      message.error("Por favor selecciona una fecha final")
+      return;
+    }
+
+    if (startDate === "" && endDate !== "") {
+      message.error("Por favor selecciona una fecha inicial")
+      return;
+    }
+
+    if (startDate === "" && endDate === "") {
+      const comparareDates = (a: any, b: any) => {
+        return b.start.localeCompare(a.start);
+      };
+      const sortedDates = dates.sort(comparareDates);
+
+
+      setTotalItems(sortedDates.length)
+      setFilteredDates(sortedDates)
+      setFiltered(false)
+      setShowingToday(false)
+      return;
+    }
+
+    if (startDate !== "" && endDate !== "") {
+      const sd = moment(startDate)
+      const ed = moment(endDate)
+      const filtered = dates.filter((date: any) => moment(date.start).isBetween(sd, ed, 'days', '[]'));
+      const comparareDates = (a: any, b: any) => {
+        return b.start.localeCompare(a.start);
+      };
+      const sortedDates = filtered.sort(comparareDates);
+      setTotalItems(sortedDates.length)
+      setFilteredDates(sortedDates)
+      setFiltered(true)
+      setShowingToday(false)
+    }
+
+  }
+
   return (
     <Card
       title="Citas"
@@ -409,15 +577,10 @@ const DatesPage = () => {
         <Row align="middle" style={{ marginBottom: 8 }}>
           <Col>Filtro:</Col>
           <Col style={{ paddingLeft: 8 }}>
-            <Select
-              style={{ width: 120 }}
-              onChange={handleChangeFilter}
-              options={[
-                { label: "Hoy", value: "today" },
-                { label: "Todas", value: "all" },
-              ]}
-              defaultValue={"today"}
-            />
+            <Space>
+              <DatePicker.RangePicker onChange={onChange} />
+
+            </Space>
           </Col>
         </Row>
       }
@@ -429,9 +592,15 @@ const DatesPage = () => {
           <div>
             <CalendarOutlined className="stat-icon" />
             <h3 className="stat-title">
-              {filterBy === "today" ? "Mis citas de hoy" : "Todas mis citas"}{" "}
-              {dates.length}
+              {(filtered) ? "Citas entre " + startDate + " y " + endDate
+                :
+                showingToday ?
+                  "Citas de hoy"
+                  :
+                  "Todas mis citas"
+              }
             </h3>
+
           </div>
         )}
       </Card.Grid>
@@ -440,7 +609,7 @@ const DatesPage = () => {
         style={{ width: "100%" }}
         loading={loadingData}
         bordered
-        dataSource={dates}
+        dataSource={filteredDates}
         pagination={{
           onChange: (page) => {
             console.log(page);
@@ -448,7 +617,7 @@ const DatesPage = () => {
           pageSize: 5,
           showSizeChanger: false
         }}
-        
+
         renderItem={(date: any) => (
           <>
             {" "}
@@ -471,7 +640,7 @@ const DatesPage = () => {
         open={isOpenModal}
         onCancel={handleCloseModal}
         footer={null}
-        width={ isMobile ? "100%" : "60%"}
+        width={isMobile ? "100%" : "60%"}
       >
         {user.isDoctor && (
           <MedicalRecordForm
